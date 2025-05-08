@@ -1,0 +1,52 @@
+.error-container {
+    position: fixed; /* <-- uniezależnia od kontenera */
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+  
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    pointer-events: none; /* pozwala kliknąć przez tło, ale nie przez komunikat */
+  }
+  
+  .error-message {
+    background-color: #f44336;
+    color: #fff;
+    padding: 14px 20px;
+    border-radius: 8px;
+    font-size: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    min-width: 280px;
+    max-width: 500px;
+    text-align: center;
+    animation: fadeIn 0.3s ease-in-out;
+    pointer-events: auto; /* przywracamy możliwość kliknięcia w X */
+    position: relative;
+  }
+  
+  .error-close {
+    position: relative;
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  
+  .close-btn:hover {
+    color: #ddd;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translate(0, -8px);
+    }
+    to {
+      opacity: 1;
+      transform: translate(0, 0);
+    }
+  }
+  
