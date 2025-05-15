@@ -5,9 +5,7 @@ import './etapy.css';
 import  ModalConfirm from '../modal/ModalConfirm'
 const Etapy = () => {
   // Stan do kontrolowania widoczności poszczególnych elementów
-  const [isPoolCreated, setIsPoolCreated] = useState(false);
   const [poolName, setPoolName] = useState('');
-  const [isNameSubmitted, setIsNameSubmitted] = useState(false);
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [loading, setLoading] = useState(true);
   const [socket, setSocket] = useState(null);
@@ -20,6 +18,7 @@ const Etapy = () => {
   const [selectedQuestions, setSelectedQuestions] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPoolId, setSelectedPoolId] = useState(null);
+  const [assignedQuestions, setAssignedQuestions] = useState([]);
 
   useEffect(() => {
     const socketConnection = new WebSocket('ws://localhost:3000'); // Połączenie z serwerem WebSocket
@@ -100,19 +99,31 @@ const Etapy = () => {
 };  
 const handleAddQuestionstoPool = () => {
   if (!socket || socket.readyState !== WebSocket.OPEN) {
-      alert('Połączenie z serwerem nie jest aktywne');
-      return;
+    alert('Połączenie z serwerem nie jest aktywne');
+    return;
   }
-  
+
+  if (!selectedStage) {
+    alert('Wybierz etap, zanim dodasz pytania');
+    return;
+  }
+
+  if (!selectedQuestions.length) {
+    alert('Nie wybrano żadnych pytań');
+    return;
+  }
+
   const data = {
-      action: 'updatePoolQuestions',
-      selectedQuestions: selectedQuestions,
-      poolId: poolId,
-      stage: selectedStage
+    action: 'updatePoolQuestions',
+    selectedQuestions: selectedQuestions, // array of question IDs
+    poolId: poolId, // lub poolId zależnie od nazwy w Twoim stanie
+    stage: selectedStage
   };
-  console.log(selectedQuestions,poolId,selectedStage)
-  socket.send(JSON.stringify(data)); 
+
+  console.log('Wysyłam do serwera:', data);
+  socket.send(JSON.stringify(data));
 };
+
 
 
 const handleDeletePool = (poolId) => {
@@ -217,7 +228,7 @@ const cancelReset = () => {
                         <td>Dodaj do etapu</td>
                     </tr>
                 </thead>
-                {Questions.map((item, index) => (
+                {Questions.filter(q => q.id_puli === poolId || q.id_puli === null).map((item, index) => (
                     <tbody key={index}>
                         <tr>
                             <td>{item.id}</td>

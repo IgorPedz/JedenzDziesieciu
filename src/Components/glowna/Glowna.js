@@ -3,6 +3,9 @@ import "./glowna.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash,faUser } from '@fortawesome/free-solid-svg-icons';
 import ErrorMessage from '../error/error'
+import Confetti from 'react-confetti';
+import useWindowSize from 'react-use/lib/useWindowSize';
+
 function Glowna() {
   const [pools, setPools] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,6 +19,11 @@ function Glowna() {
   const [questions, setQuestions] = useState([]);
   const [error, setError] = useState('');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [filteredQuestions, setFilteredQuestions] = useState([]);
+  const [winner,setWinner] = useState('');
+
+  const { width, height } = useWindowSize();
+
   // Połączenie z WebSocket
   useEffect(() => {
     const socketConnection = new WebSocket('ws://localhost:3000');
@@ -36,11 +44,15 @@ function Glowna() {
         setLoading(false);
       } else if (data.action === 'showGames'){
         setGames(data.games)
+
       } else if (data.action === 'playersList') {
         setPlayers(data.data);  // Ustawiamy graczy w stanie
         setLoading(false);  // Zakończenie ładowania
       } else if( data.action === 'showQuestions'){
         setQuestions(data.questions)
+      } else if (data.action === 'showWinner'){
+        setWinner(data.Winner)
+        console.log(data.Winner)
       }
     };
 
@@ -121,8 +133,11 @@ function Glowna() {
       }
   };
   };
-  const handleOpenAdminPopup = (game) => {
+  const handleOpenAdminPopup = (game,id_puli) => {
+    console.log(id_puli)
     setSelectedGame(game);
+    const filtered = questions.filter(q => q.id_puli === id_puli);
+    setFilteredQuestions(filtered);
   };
   
   const handleCloseAdminPopup = () => {
@@ -169,9 +184,21 @@ function Glowna() {
   };
   
   const nextQuestion = () => {
-    setCurrentQuestionIndex(prev => prev + 1);
+    if(currentQuestionIndex < filteredQuestions.length - 1)
+      setCurrentQuestionIndex(prev => prev + 1);
+    else
+    {
+      const Winnerdata = {
+        action: "chooseWinner"
+      }
+      console.log('wysylam zapytanie o zwyciezce')
+      socket.send(JSON.stringify(Winnerdata))
+    }
   };
-
+  const resetGame = () => {
+    setWinner(null)
+    window.location.reload()
+  }
   return (
     <div className='main-content'>
       <div>
@@ -210,13 +237,14 @@ function Glowna() {
         <h2>Administruj gry</h2>
         {games.length > 0 ? (
             <ul>
+              {console.log(games)}
                 {games.map((game) => (
                     <li key={game.id}>
                         <span>{game.nazwa_gry}</span>
                         <span>Pula: {game.nazwa}</span>
                         <div className='game-options'>
                           <button className="delete-game" onClick={() => handleDeleteGame(game.id)}><FontAwesomeIcon icon={faTrash}/></button>
-                          <button className="admin-game" onClick={() => handleOpenAdminPopup(game)}><FontAwesomeIcon icon={faUser}/></button>
+                          <button className="admin-game" onClick={() => handleOpenAdminPopup(game,game.id_puli)}><FontAwesomeIcon icon={faUser}/></button>
                         </div>
                     </li>
                 ))}
@@ -235,28 +263,28 @@ function Glowna() {
 
       <div className="popup-content">
       {questions.length > 0 ? (
-        currentQuestionIndex < questions.length ? (
+        currentQuestionIndex < filteredQuestions.length ? (
       <table className="modern-question-table">
         <tbody>
           <tr>
             <td className="question-label">Pytanie:</td>
-            <td className="question-text">{questions[currentQuestionIndex].pytanie}</td>
+            <td className="question-text">{filteredQuestions[currentQuestionIndex].pytanie}</td>
           </tr>
           <tr>
             <td className="question-label">Poprawna odpowiedź:</td>
-            <td className="true-answer">{questions[currentQuestionIndex].odpowiedz_poprawna}</td>
+            <td className="true-answer">{filteredQuestions[currentQuestionIndex].odpowiedz_poprawna}</td>
           </tr>
           <tr>
             <td className="question-label">Podpowiedź 1:</td>
-            <td className="hint">{questions[currentQuestionIndex].podpowiedz_1}</td>
+            <td className="hint">{filteredQuestions[currentQuestionIndex].podpowiedz_1}</td>
           </tr>
           <tr>
             <td className="question-label">Podpowiedź 2:</td>
-            <td className="hint">{questions[currentQuestionIndex].podpowiedz_2}</td>
+            <td className="hint">{filteredQuestions[currentQuestionIndex].podpowiedz_2}</td>
           </tr>
           <tr>
             <td className="question-label">Podpowiedź 3:</td>
-            <td className="hint">{questions[currentQuestionIndex].podpowiedz_3}</td>
+            <td className="hint">{filteredQuestions[currentQuestionIndex].podpowiedz_3}</td>
           </tr>
         </tbody>
       </table>
@@ -266,6 +294,7 @@ function Glowna() {
       ) : (
         <p>Brak pytań do wyświetlenia.</p>
       )}
+      <span class='next-question' onClick={nextQuestion}>Nastepne pytanie</span>
         <h3>Uczestnicy gry:</h3>
         {players.length > 0 ? (
           <ul className="participants-list">
@@ -288,7 +317,6 @@ function Glowna() {
     </li>
     
   ))}
-  <span class='next-question' onClick={nextQuestion}>Nastepne pytanie</span>
 </ul>
         ) : (
           <p>Brak uczestników</p>
@@ -319,6 +347,17 @@ function Glowna() {
         </div>
     </>
   )}
+{winner && (
+ <div className="winner-modal-overlay fire-bg">
+      <Confetti width={width} height={height} numberOfPieces={500} recycle={false} />
+      <div className="winner-modal">
+        <h2>🎉 Zwycięzca!</h2>
+        <p><strong>{winner.Imie}</strong> zdobył <strong>{winner.Punkty}</strong> punktów!</p>
+        <button onClick={resetGame}>Zamknij</button>
+      </div>
+    </div>
+)}
+
 </div>
     </div>
   </div>

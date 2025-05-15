@@ -434,70 +434,73 @@ wss.on('connection', (ws) => {
                             });
                             break;
                         }
-                        case 'updatePoolQuestions':
-                        {
-                            const { selectedQuestions, poolId, stage } = data;
-                            console.log(stage)
-                                // Sprawdzamy, czy dane są poprawne
-                                if (!poolId || !selectedQuestions.length) {
-                                    ws.send(JSON.stringify({ error: 'Brak danych' }));
-                                    return;
-                                }
+                       case 'updatePoolQuestions': {
+                        const { selectedQuestions, poolId, stage } = data;
+                        console.log('Etap:', stage);
 
-                                // Rozpoczynamy transakcję
-                                db.beginTransaction((err) => {
-                                    if (err) {
-                                        console.error('❌ Błąd transakcji:', err);
-                                        ws.send(JSON.stringify({ error: 'Błąd serwera' }));
-                                        return;
-                                    }
+                        if (!poolId || !Array.isArray(selectedQuestions)) {
+                            ws.send(JSON.stringify({ error: 'Brak danych' }));
+                            return;
+                        }
 
-                                    // Krok 1: Usuń pytania przypisane do etapu w puli, ale tylko dla pytań, które są w selectedQuestions
-                                    selectedQuestions.forEach((questionId) => {
-                                        db.query('DELETE FROM etapy_pytan WHERE id_pytania = ? AND id_puli = ?', [questionId, poolId], (err) => {
-                                            if (err) {
-                                                console.error('❌ Błąd przy usuwaniu pytania:', err);
-                                                db.rollback(() => {
-                                                    ws.send(JSON.stringify({ error: 'Błąd przy usuwaniu pytań z etapu' }));
-                                                });
-                                                return;
-                                            }
+                        db.beginTransaction(async (err) => {
+                            if (err) {
+                                console.error('❌ Błąd transakcji:', err);
+                                ws.send(JSON.stringify({ error: 'Błąd serwera' }));
+                                return;
+                            }
 
-                                            console.log(`✅ Usunięto pytanie ${questionId} z etapu ${stage} w puli ${poolId}`);
-
-                                            // Krok 2: Dodaj nowe przypisania pytań do wybranego etapu
-                                            db.query('INSERT INTO etapy_pytan (etap, id_pytania,id_puli) VALUES (?, ?, ?)', [stage, questionId, poolId], (err) => {
-                                                if (err) {
-                                                    console.error('❌ Błąd przy wstawianiu pytania:', err);
-                                                    db.rollback(() => {
-                                                        ws.send(JSON.stringify({ error: 'Błąd przy wstawianiu pytań' }));
-                                                    });
-                                                    return;
-                                                }
-
-                                                console.log(`✅ Pytanie ${questionId} zostało przypisane do etapu ${stage}`);
-
-                                                // Po zakończeniu wszystkich insertów commitujemy transakcję
-                                                if (selectedQuestions.indexOf(questionId) === selectedQuestions.length - 1) {
-                                                    db.commit((err) => {
-                                                        if (err) {
-                                                            console.error('❌ Błąd commitowania transakcji:', err);
-                                                            db.rollback(() => {
-                                                                ws.send(JSON.stringify({ error: 'Błąd przy zatwierdzaniu zmian' }));
-                                                            });
-                                                            return;
-                                                        }
-                                                        console.log(`✅ Pytania zostały zaktualizowane dla puli ${poolId} na etapie ${stage}`);
-                                                        ws.send(JSON.stringify({ action: 'updateSuccess', message: 'Pytania zaktualizowane' }));
-                                                    });
-                                                }
-                                            });
-                                        });
-                                    });
+                            try {
+                                // 🔁 Krok 1: Usuń WSZYSTKIE przypisania do tego etapu i puli
+                                await new Promise((resolve, reject) => {
+                                    db.query(
+                                        'DELETE FROM etapy_pytan WHERE id_puli = ? AND etap = ?',
+                                        [poolId, stage],
+                                        (err) => {
+                                            if (err) return reject(err);
+                                            resolve();
+                                        }
+                                    );
                                 });
 
-                            break;
-                        }
+                                // 🆕 Krok 2: Dodaj nowe pytania (bez duplikatów – usunięte wcześniej)
+                                for (const questionId of selectedQuestions) {
+                                    await new Promise((resolve, reject) => {
+                                        db.query(
+                                            'INSERT INTO etapy_pytan (etap, id_pytania, id_puli) VALUES (?, ?, ?)',
+                                            [stage, questionId, poolId],
+                                            (err) => {
+                                                if (err) return reject(err);
+                                                resolve();
+                                            }
+                                        );
+                                    });
+                                }
+
+                                // ✅ Zatwierdź transakcję
+                                db.commit((err) => {
+                                    if (err) {
+                                        console.error('❌ Błąd commitowania transakcji:', err);
+                                        return db.rollback(() => {
+                                            ws.send(JSON.stringify({ error: 'Błąd przy zatwierdzaniu zmian' }));
+                                        });
+                                    }
+
+                                    console.log(`✅ Pytania zostały nadpisane dla puli ${poolId} na etapie ${stage}`);
+                                    ws.send(JSON.stringify({ action: 'updateSuccess', message: 'Pytania zaktualizowane' }));
+                                });
+
+                            } catch (error) {
+                                console.error('❌ Błąd podczas aktualizacji pytań:', error);
+                                db.rollback(() => {
+                                    ws.send(JSON.stringify({ error: 'Wystąpił błąd podczas aktualizacji pytań' }));
+                                });
+                            }
+                        });
+
+                        break;
+                    }
+
                         case 'createGame':
                             {
                                 const { gameName, poolId } = data;
@@ -535,7 +538,7 @@ wss.on('connection', (ws) => {
                             break;
                         case 'getGames':
                             {
-                                const query = 'SELECT nazwa_gry,p.nazwa FROM gry left join pula p on gry.id_puli = p.id';
+                                const query = 'SELECT nazwa_gry,p.nazwa,id_puli FROM gry left join pula p on gry.id_puli = p.id';
                                 db.query(query, (err, results) => {
                                     if (err) {
                                         console.error('❌ Błąd pobierania gier:', err);
@@ -768,7 +771,33 @@ wss.on('connection', (ws) => {
                                     });
                                 });
                                 break;
-                            }                                                              
+                            } 
+                            case 'chooseWinner': 
+                                {
+                                const query = 'SELECT * FROM uczestnicy ORDER BY Punkty DESC LIMIT 1';
+
+                                db.query(query, (err, result) => {
+                                    if (err) {
+                                    console.error('❌ Błąd pobierania wygranego:', err);
+                                    ws.send(JSON.stringify({ action: 'error', message: 'Błąd pobierania wygranego' }));
+                                    return;
+                                    }
+
+                                    if (!result || result.length === 0) {
+                                    ws.send(JSON.stringify({ action: 'showWinner', Winner: null }));
+                                    return;
+                                    }
+
+                                    const winner = result[0];
+                                    console.log('🏆 Wygrany to:', winner);
+
+                                    ws.send(JSON.stringify({ action: 'showWinner', Winner: winner }));
+                                });
+
+                                break;
+                                }
+
+                                                                                
         }
     });
 
