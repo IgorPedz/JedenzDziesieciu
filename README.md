@@ -70,10 +70,10 @@ npm start
 ### 🗂️ Struktura projektu
 
 JedenzDiesieciu/<br>
-├── server/             # Backend Node.js + WebSocket<br>
-│   └── server.js       # Główny plik serwera<br>
-├── src/                # Aplikacja React<br>
-│   ├── components/     # Komponenty React<br>
-│   └── App.js          # Główny komponent aplikacji<br> 
-├── projekt_abd.sql     # Plik SQL do utworzenia bazy danych<br>
-└── README.md           # Dokumentacja projektu<br>
+├── server/             			# Backend Node.js + WebSocket<br>
+│   └── server.js       			# Główny plik serwera<br>
+├── src/                			# Aplikacja React<br>
+│   ├── components/     			# Komponenty React<br>
+│   └── App.js          			# Główny komponent aplikacji<br> 
+├── projekt_abd.sql     			# Plik SQL do utworzenia bazy danych<br>
+└── README.md           			# Dokumentacja projektu<br>
