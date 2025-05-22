@@ -1,48 +1,73 @@
-# Projekt: Jeden z dziesieciu z WebSocket
+# Jeden z Dziesięciu – Gra z WebSocket
 
-Aplikacja do tworzenia i zarządzania grami Jeden z dziesieciu, w której gracze mogą uczestniczyć w grze z pytaniami. Aplikacja korzysta z WebSocket do komunikacji w czasie rzeczywistym między serwerem a klientami. Umożliwia tworzenie gier, zarządzanie graczami oraz modyfikację punktów i życia graczy.
+Aplikacja do tworzenia i zarządzania grami w stylu teleturnieju **"Jeden z Dziesięciu"**, w której gracze mogą brać udział w czasie rzeczywistym dzięki komunikacji WebSocket.
 
-## Funkcjonalności
+## 🔧 Funkcjonalności
 
-- **Tworzenie gier**: Możliwość tworzenia nowych gier z określoną pulą pytań.
-- **Zarządzanie graczami**: Możliwość dodawania graczy do gry oraz wyświetlanie ich danych.
-- **Zmiana punktów i życia**: Administracja może zmieniać punkty i życie graczy.
-- **Usuwanie graczy**: Administracja może usunąć gracza z gry.
-- **WebSocket**: Komunikacja między serwerem a klientami w czasie rzeczywistym.
+- 🎮 Tworzenie gier z wybraną pulą pytań.
+- 👥 Zarządzanie graczami (dodawanie, usuwanie, podgląd).
+- 📊 Modyfikacja punktów i życia każdego gracza.
+- 🔌 WebSocket do komunikacji w czasie rzeczywistym.
+- 🖥️ Panel administracyjny do kontrolowania przebiegu gry.
 
-## Technologie
+---
 
-- **Frontend**: React
-- **Backend**: Node.js z WebSocket
-- **Baza danych**: MySQL
+## 🧰 Technologie
 
-## Instalacja
+- **Frontend:** React (JavaScript)
+- **Backend:** Node.js + WebSocket
+- **Baza danych:** MySQL (XAMPP / phpMyAdmin)
 
-## 1. Wymagania wstępne
+---
 
-Upewnij się, że masz zainstalowane na swoim komputerze następujące oprogramowanie:
+## 📦 Instalacja
 
-- [Node.js](https://nodejs.org/) (zalecana wersja: **16.x** lub wyższa)
-- [npm](https://www.npmjs.com/) (zainstalowany automatycznie wraz z Node.js)
-- [xampp] (https://www.apachefriends.org/pl/index.html)
-## 1.5 Postaw baze danych mysql
-  Zaimportuj plik JzD.sql do phpmyadmin i stworz potrzebną baze danych
-## 2. Sklonowanie repozytorium
+## 📡 WebSocket
+Połączenia WebSocket umożliwiają:
 
-# Uruchom konsole by postawic serwer nodejs
+	natychmiastową aktualizację danych graczy,
+
+	reakcję na działania administracji (dodanie/usunięcie gracza, zmiana punktów/życia),
+
+	synchronizację pytań i przebiegu gry w czasie rzeczywistym.
+
+---
+
+### 1. Wymagania wstępne
+
+- [Node.js](https://nodejs.org/) (zalecana wersja 16.x lub wyższa)
+- npm (instalowany razem z Node.js)
+- [XAMPP](https://www.apachefriends.org/pl/index.html) lub inny serwer MySQL
+- Git
+
+### 2. Przygotowanie bazy danych
+
+1. Uruchom XAMPP i włącz `Apache` oraz `MySQL`.
+2. Otwórz [phpMyAdmin](http://localhost/phpmyadmin).
+3. Zaimportuj plik `JzD.sql` znajdujący się w katalogu projektu.
+4. Upewnij się, że baza danych została poprawnie utworzona.
+
+### 3. Klonowanie repozytorium
+
 ```bash
 git clone https://github.com/IgorPedz/JedenzDiesieciu.git
-
-cd desktop/JedenzDziesieciu
-
+cd JedenzDiesieciu
+# Instalacja zależności głównych
 npm install
-
-cd desktop/JedenzDziesieciu/server
+# Uruchomienie serwera
+cd server
 node server.js
-```
-# Uruchom kolejną konsole by postawić aplikacje react
-```bash
-cd desktop/JedenzDziesieciu/src
+# Uruchomienie aplikacji react
+cd src
 npm start
-y
 ```
+### 🗂️ Struktura projektu
+
+JedenzDiesieciu/
+├── server/             # Backend Node.js + WebSocket
+│   └── server.js       # Główny plik serwera
+├── src/                # Aplikacja React
+│   ├── components/     # Komponenty React
+│   └── App.js          # Główny komponent aplikacji
+├── JzD.sql             # Plik SQL do utworzenia bazy danych
+└── README.md           # Dokumentacja projektu
