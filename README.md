@@ -20,18 +20,18 @@ Aplikacja do tworzenia i zarządzania grami w stylu teleturnieju **"Jeden z Dzie
 
 ---
 
-## 📦 Instalacja
-
 ## 📡 WebSocket
 Połączenia WebSocket umożliwiają:
 
-	natychmiastową aktualizację danych graczy,
+- Natychmiastową aktualizację danych graczy,
 
-	reakcję na działania administracji (dodanie/usunięcie gracza, zmiana punktów/życia),
+- Reakcję na działania administracji (dodanie/usunięcie gracza, zmiana punktów/życia),
 
-	synchronizację pytań i przebiegu gry w czasie rzeczywistym.
+- Synchronizację pytań i przebiegu gry w czasie rzeczywistym.
 
 ---
+
+## 📦 Instalacja
 
 ### 1. Wymagania wstępne
 
@@ -44,30 +44,36 @@ Połączenia WebSocket umożliwiają:
 
 1. Uruchom XAMPP i włącz `Apache` oraz `MySQL`.
 2. Otwórz [phpMyAdmin](http://localhost/phpmyadmin).
-3. Zaimportuj plik `JzD.sql` znajdujący się w katalogu projektu.
+3. Zaimportuj plik `projekt_abd.sql` znajdujący się w katalogu projektu.
 4. Upewnij się, że baza danych została poprawnie utworzona.
 
 ### 3. Klonowanie repozytorium
 
+
+- Pierwsza konsola (cmd)
 ```bash
-git clone https://github.com/IgorPedz/JedenzDiesieciu.git
-cd JedenzDiesieciu
+git clone https://github.com/IgorPedz/JedenzDziesieciu.git
+cd JedenzDziesieciu
 # Instalacja zależności głównych
 npm install
 # Uruchomienie serwera
 cd server
 node server.js
+```
+
+- Druga konsola (cmd)
+```bash
 # Uruchomienie aplikacji react
-cd src
+cd JedenzDziesieciu/src
 npm start
 ```
 ### 🗂️ Struktura projektu
 
 JedenzDiesieciu/
-├── server/             # Backend Node.js + WebSocket
-│   └── server.js       # Główny plik serwera
-├── src/                # Aplikacja React
-│   ├── components/     # Komponenty React
-│   └── App.js          # Główny komponent aplikacji
-├── JzD.sql             # Plik SQL do utworzenia bazy danych
-└── README.md           # Dokumentacja projektu
+├── server/             # Backend Node.js + WebSocket<br>
+│   └── server.js       # Główny plik serwera<br>
+├── src/                # Aplikacja React<br>
+│   ├── components/     # Komponenty React<br> 
+│   └── App.js          # Główny komponent aplikacji<br>  
+├── projekt_abd.sql             # Plik SQL do utworzenia bazy danych<br>  
+└── README.md           # Dokumentacja projektu<br>  
